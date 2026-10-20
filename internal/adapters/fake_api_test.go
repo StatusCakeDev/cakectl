@@ -1,0 +1,146 @@
+package adapters_test
+
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"sync"
+	"testing"
+
+	"github.com/StatusCakeDev/statuscake-go"
+
+	"github.com/StatusCakeDev/cakectl/internal/adapters"
+)
+
+// The adapters are tested against a real SDK client talking to a fake
+// StatusCake API, rather than against a mock of the SDK's interfaces. The
+// SDK's request builders keep their parameters in unexported fields, which a
+// mock cannot see, so a mock could not tell whether an adapter sent the right
+// field. A fake server sees exactly what is sent on the wire.
+
+// call is one request that reached the fake API.
+type call struct {
+	Method string
+	Path   string
+	Query  url.Values
+	Form   url.Values
+}
+
+// fakeAPI is a StatusCake API whose routes the test declares, and which
+// remembers every request it served.
+type fakeAPI struct {
+	mu     sync.Mutex
+	routes map[string]http.HandlerFunc
+	seen   []call
+}
+
+// newAPI starts a fake API and an adapter wired to it. Retries are disabled so
+// that a failing route fails once and at once.
+func newAPI(t *testing.T) (*fakeAPI, *adapters.Client) {
+	t.Helper()
+
+	api := &fakeAPI{routes: map[string]http.HandlerFunc{}}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+
+		api.mu.Lock()
+		api.seen = append(api.seen, call{
+			Method: r.Method,
+			Path:   r.URL.Path,
+			Query:  r.URL.Query(),
+			Form:   r.PostForm,
+		})
+		mux := api.mux()
+		api.mu.Unlock()
+
+		mux.ServeHTTP(w, r)
+	}))
+	t.Cleanup(srv.Close)
+
+	sdk := statuscake.NewClient(
+		statuscake.WithHost(srv.URL),
+		statuscake.WithDisableRetry(),
+	)
+	return api, adapters.NewClient(sdk)
+}
+
+// mux builds the router from the declared routes. Anything undeclared is a 404
+// with the API's error body. The caller must hold the lock.
+func (a *fakeAPI) mux() *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		write(w, http.StatusNotFound, map[string]any{"message": "not found"})
+	})
+	for pattern, h := range a.routes {
+		mux.HandleFunc(pattern, h)
+	}
+	return mux
+}
+
+// serve declares a route that answers every request with the same status and
+// body. The pattern is an [http.ServeMux] pattern such as "GET /v1/uptime".
+// A nil body sends an empty response.
+func (a *fakeAPI) serve(pattern string, status int, body any) {
+	a.serveFunc(pattern, func(w http.ResponseWriter, _ *http.Request) {
+		write(w, status, body)
+	})
+}
+
+// serveFunc declares a route with a custom handler.
+func (a *fakeAPI) serveFunc(pattern string, h http.HandlerFunc) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.routes[pattern] = h
+}
+
+// calls returns the requests served so far.
+func (a *fakeAPI) calls() []call {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return append([]call(nil), a.seen...)
+}
+
+// only returns the single request that was served, failing the test if there
+// were none or several.
+func (a *fakeAPI) only(t *testing.T) call {
+	t.Helper()
+
+	calls := a.calls()
+	if len(calls) != 1 {
+		t.Fatalf("served %d requests, want exactly 1: %+v", len(calls), calls)
+	}
+	return calls[0]
+}
+
+func write(w http.ResponseWriter, status int, body any) {
+	if body == nil {
+		w.WriteHeader(status)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(body)
+}
+
+// created is the API's answer to a successful create.
+func created(id string) map[string]any {
+	return map[string]any{"data": map[string]any{"new_id": id}}
+}
+
+// page is the API's envelope for one page of a listing.
+func page(number, count int, items ...any) map[string]any {
+	if items == nil {
+		items = []any{}
+	}
+	return map[string]any{
+		"data": items,
+		"metadata": map[string]any{
+			"page":        number,
+			"per_page":    100,
+			"page_count":  count,
+			"total_count": len(items),
+		},
+	}
+}
