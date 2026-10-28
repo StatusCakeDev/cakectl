@@ -1,4 +1,4 @@
-# cakectl
+# cakectl [![test](https://github.com/StatusCakeDev/cakectl/actions/workflows/test.yaml/badge.svg?event=push)](https://github.com/StatusCakeDev/cakectl/actions/workflows/test.yaml)
 
 [![Support][support-badge]][support]
 
