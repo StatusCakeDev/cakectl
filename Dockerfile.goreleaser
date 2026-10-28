@@ -1,0 +1,7 @@
+FROM gcr.io/distroless/static-debian12:nonroot
+
+COPY --chmod=755 cakectl /usr/local/bin/cakectl
+
+USER 65532:65532
+
+ENTRYPOINT ["/usr/local/bin/cakectl"]
