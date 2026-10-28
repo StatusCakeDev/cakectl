@@ -8,8 +8,8 @@
 - Website: [statuscake.com](https://www.statuscake.com)
 - Support: [developers.statuscake.com](https://developers.statuscake.com/guides/cli/introduction)
 
-This README outlines the details of collaborating on this Go module. A short
-introduction of this module could easily go here.
+A command line tool for [StatusCake](https://www.statuscake.com). Create,
+inspect and manage monitoring from the terminal.
 
 ## Prerequisites
 
@@ -30,6 +30,10 @@ go install github.com/StatusCakeDev/cakectl@latest
 > [!NOTE]
 > Installing from source using `go install` will build from the master branch
 > and won't report version information via `cakectl --version`.
+
+### Documentation
+
+Full documentation is available on the [developer portal][support].
 
 ## License
 
