@@ -1,3 +1,5 @@
+github.com/StatusCakeDev/statuscake-go v1.3.0 h1:Ok6LIZUKhoe/ykcUuIzS8zg6MbtCrO3I1ZBVFl3TLMA=
+github.com/StatusCakeDev/statuscake-go v1.3.0/go.mod h1:YefpyhDUs1gLCKXG5F9pPcZAp3rk4JyNkb9dfHbgr1I=
 github.com/goccy/go-yaml v1.19.2 h1:PmFC1S6h8ljIz6gMRBopkjP1TVT7xuwrButHID66PoM=
 github.com/goccy/go-yaml v1.19.2/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7LkFRi1kA=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
@@ -8,3 +10,5 @@ github.com/tomasbasham/cli-runtime v0.0.0-20261001063411-ce582f58a98b h1:KsqBi36
 github.com/tomasbasham/cli-runtime v0.0.0-20261001063411-ce582f58a98b/go.mod h1:tTnpCsIqXC7JKIzFLk5seHEGrqKFKJlLIFtgJHp3RQI=
 github.com/tomasbasham/gofp v0.0.0-20260227012010-4174039de329 h1:p8Zlev8lKP7bfeCO3KPma5RRGxiLRfJ0qtaVdXtfF88=
 github.com/tomasbasham/gofp v0.0.0-20260227012010-4174039de329/go.mod h1:I98R/383X2ynwqBwHSS9lHoQjZuo8Vg0VaiRQ+Tsbms=
+golang.org/x/time v0.16.0 h1:vMb6ptszcQMkcwiRTAuNNU50gom6++Q/6gY2hDM6VDE=
+golang.org/x/time v0.16.0/go.mod h1:rVKOqvZeKvrDKTQiAHJ7wmwP0RzleSphoEA9RcdLA0s=
